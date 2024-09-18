@@ -43,7 +43,7 @@ export default async function RootLayout({
           <nav>
             <ul>
               <li>
-                <strong>DatoCMS starter: a blog example</strong>
+                <strong>DatoCMS cache tags example: Vercel KV</strong>
               </li>
             </ul>
             <ul>
