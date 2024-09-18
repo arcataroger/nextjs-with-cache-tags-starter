@@ -13,9 +13,9 @@
  * queries, when we receive a "Cache Tags Invalidation" webhook from DatoCMS.
  */
 
-import { createClient } from '@libsql/client';
+import {createClient} from '@libsql/client';
 
-import type { CacheTag } from './cache-tags';
+import type {CacheTag} from './cache-tags';
 
 /*
  * Creates and returns a Turso database client. Note the custom fetch method
@@ -23,20 +23,20 @@ import type { CacheTag } from './cache-tags';
  * ensure that Next.js does not cache our HTTP requests for database calls.
  */
 const database = () =>
-  createClient({
-    url: process.env.TURSO_DATABASE_URL!,
-    authToken: process.env.TURSO_AUTH_TOKEN!,
-    fetch: (input: string | URL, init?: RequestInit) => {
-      return fetch(input, { ...init, cache: 'no-store' });
-    },
-  });
+    createClient({
+        url: process.env.TURSO_DATABASE_URL!,
+        authToken: process.env.TURSO_AUTH_TOKEN!,
+        fetch: (input: string | URL, init?: RequestInit) => {
+            return fetch(input, {...init, cache: 'no-store'});
+        },
+    });
 
 /*
  * Generates a string of SQL placeholders ('?') separated by commas.
  * It's useful for constructing SQL queries with varying numbers of parameters.
  */
 function sqlPlaceholders(count: number) {
-  return Array.from({ length: count }, () => '?').join(',');
+    return Array.from({length: count}, () => '?').join(',');
 }
 
 /*
@@ -46,53 +46,77 @@ function sqlPlaceholders(count: number) {
  * duplicate entry), the operation simply does nothing.
  */
 export async function storeQueryCacheTags(
-  queryId: string,
-  cacheTags: CacheTag[],
+    queryId: string,
+    cacheTags: CacheTag[],
 ) {
-  await database().execute({
-    sql: `
+    try {
+        const result = await database().execute({
+            sql: `
       INSERT INTO query_cache_tags (query_id, cache_tag)
       VALUES ${cacheTags.map(() => '(?, ?)').join(', ')}
       ON CONFLICT DO NOTHING
     `,
-    args: cacheTags.flatMap((cacheTag) => [queryId, cacheTag]),
-  });
+            args: cacheTags.flatMap((cacheTag) => [queryId, cacheTag]),
+        });
+
+        console.info(`Successfully stored ${cacheTags.length} cache tags for query ${queryId}. ${result.rowsAffected} rows affected.`);
+    } catch (e) {
+        console.error(`Error saving cache tags for query ${queryId}: ${cacheTags.join()}: ${e}`);
+    }
 }
 
 /*
  * Retrieves the query hashs associated with specified cache tags.
  */
 export async function queriesReferencingCacheTags(
-  cacheTags: CacheTag[],
+    cacheTags: CacheTag[],
 ): Promise<string[]> {
-  const { rows } = await database().execute({
-    sql: `
+    try {
+        const {rows, rowsAffected} = await database().execute({
+            sql: `
       SELECT DISTINCT query_id
       FROM query_cache_tags
       WHERE cache_tag IN (${sqlPlaceholders(cacheTags.length)})
     `,
-    args: cacheTags,
-  });
+            args: cacheTags,
+        });
+        const queryIds = rows.map((row) => row.query_id as string);
+        console.info(`Fetched ${rowsAffected} query ID rows for ${cacheTags.length} cache tags: ${queryIds.join()}`);
+        return queryIds
 
-  return rows.map((row) => row.query_id as string);
+    } catch (e) {
+        console.error(`Error fetching queries for cache tags ${cacheTags.join()}: ${e}`);
+        return []
+    }
+
 }
 
 /*
  * Removes all entries that reference the specified queries.
  */
 export async function deleteQueries(queryIds: string[]) {
-  await database().execute({
-    sql: `
+    try {
+        const result = await database().execute({
+            sql: `
       DELETE FROM query_cache_tags
       WHERE query_id IN (${sqlPlaceholders(queryIds.length)})
     `,
-    args: queryIds,
-  });
+            args: queryIds,
+        });
+        console.info(`Successfully deleted ${queryIds.length} query IDs in ${result.rowsAffected} rows.`)
+    } catch (e) {
+        console.error(`Error removing queries ${queryIds.join()}: ${e}`);
+    }
 }
 
 /*
  * Wipes out all data contained in the table.
  */
 export async function truncateAssociationsTable() {
-  await database().execute('DELETE FROM query_cache_tags');
+    try {
+        const result = await database().execute('DELETE FROM query_cache_tags');
+        console.info(`Successfully wiped table and deleted ${result.rowsAffected} rows.`)
+    } catch (e) {
+        console.error(`Error wiping table ${e}`);
+    }
 }
