@@ -16,6 +16,7 @@
 import {createClient} from '@libsql/client';
 
 import type {CacheTag} from './cache-tags';
+import {cache} from "react";
 
 /*
  * Creates and returns a Turso database client. Note the custom fetch method
@@ -59,7 +60,7 @@ export async function storeQueryCacheTags(
             args: cacheTags.flatMap((cacheTag) => [queryId, cacheTag]),
         });
 
-        console.info(`Successfully stored ${cacheTags.length} cache tags for query ${queryId}. ${result.rowsAffected} rows affected.`);
+        console.info(`Successfully stored ${cacheTags.length} cache tags for query ID ${queryId}. ${result.rowsAffected} rows affected. Cache tags: ${cacheTags.join()}`);
     } catch (e) {
         console.error(`Error saving cache tags for query ${queryId}: ${cacheTags.join()}: ${e}`);
     }
@@ -72,7 +73,7 @@ export async function queriesReferencingCacheTags(
     cacheTags: CacheTag[],
 ): Promise<string[]> {
     try {
-        const {rows, rowsAffected} = await database().execute({
+        const {rows} = await database().execute({
             sql: `
       SELECT DISTINCT query_id
       FROM query_cache_tags
@@ -81,7 +82,11 @@ export async function queriesReferencingCacheTags(
             args: cacheTags,
         });
         const queryIds = rows.map((row) => row.query_id as string);
-        console.info(`Fetched ${rowsAffected} query ID rows for ${cacheTags.length} cache tags: ${queryIds.join()}`);
+        if(queryIds.length) {
+            console.info(`${cacheTags.length} cache tags (${cacheTags.join()}) returned ${queryIds.length} query IDs: ${queryIds.join()}`);
+        } else {
+            console.info(`No query IDs found for the ${cacheTags.length} cache tags: ${cacheTags.join()}`);
+        }
         return queryIds
 
     } catch (e) {
@@ -103,9 +108,9 @@ export async function deleteQueries(queryIds: string[]) {
     `,
             args: queryIds,
         });
-        console.info(`Successfully deleted ${queryIds.length} query IDs in ${result.rowsAffected} rows.`)
+        console.info(`Successfully deleted ${queryIds.length} query IDs in ${result.rowsAffected} rows: ${queryIds.join()}`)
     } catch (e) {
-        console.error(`Error removing queries ${queryIds.join()}: ${e}`);
+        console.error(`Error deleting ${queryIds.length} query IDs (${queryIds.join()}): ${e}`);
     }
 }
 
