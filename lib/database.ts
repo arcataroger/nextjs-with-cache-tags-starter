@@ -23,7 +23,7 @@ export async function storeQueryCacheTags(
         try {
             await kv.sadd(cacheTag, queryId)
         } catch (e) {
-            console.error(`Error storing query ID ${queryId} for cache tags ${cacheTags.join()}: ${e}`)
+            console.error(`Error storing query ID ${queryId} for cache tag ${cacheTag}`);
         }
     }
 
