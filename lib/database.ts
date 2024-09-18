@@ -23,7 +23,7 @@ export async function storeQueryCacheTags(
         try {
             await kv.sadd(cacheTag, queryId)
         } catch (e) {
-            console.error(`Error storing query ID for cache tags ${cacheTags.join()}: ${e}`)
+            console.error(`Error storing query ID ${queryId} for cache tags ${cacheTags.join()}: ${e}`)
         }
     }
 
@@ -56,7 +56,7 @@ export async function deleteCacheTags(cacheTags: CacheTag[]): Promise<number|nul
       const numberOfDeletedKeys = await kv.del(...cacheTags);
       return numberOfDeletedKeys
     } catch (e) {
-        console.error(`Error deleting cache tags ${JSON.stringify(cacheTags)}: ${e}`)
+        console.error(`Error deleting cache tags ${cacheTags.join()}: ${e}`)
         return null
     }
 }
