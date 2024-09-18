@@ -22,7 +22,12 @@ export async function POST(request: Request) {
 
   revalidatePath('/', 'layout');
 
-  await truncateAssociationsTable();
+  const truncateResult = await truncateAssociationsTable();
+  if (truncateResult === 'OK') {
+    console.info('Successfully wiped KV store.')
+  } else {
+    console.warn('Not sure if KV wipe command succeed. Check above for errors.')
+  }
 
   return NextResponse.json({});
 }

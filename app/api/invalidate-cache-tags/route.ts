@@ -71,11 +71,11 @@ export async function POST(request: Request) {
 
   const numOfDeletedCacheTags = await deleteCacheTags(cacheTags);
   if (numOfDeletedCacheTags === null) {
-    console.error(`There was a KV error deleting cache tags ${cacheTags.join()}. Check for other errors above.`);
+    console.error(`There was a KV error deleting ${cacheTags.length} cache tags: ${cacheTags.join()}`);
   } else if (numOfDeletedCacheTags === 0) {
-    console.warn(`Warning: You asked me to delete ${cacheTags.length} cache tags, but the KV ended up deleting nothing`)
+    console.warn(`Warning: You asked me to delete ${cacheTags.length} cache tags, but the KV ended up deleting nothing: ${cacheTags.join()}`)
   } else {
-    console.info(`Successfully deleted ${numOfDeletedCacheTags} cache tags from the KV.`);
+    console.info(`Successfully deleted ${numOfDeletedCacheTags} cache tags from the KV: ${cacheTags.join()}`);
   }
 
   return NextResponse.json({ cacheTags, queryIds });
