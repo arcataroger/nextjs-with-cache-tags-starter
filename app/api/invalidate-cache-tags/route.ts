@@ -7,9 +7,9 @@
  * things:
  *
  * - It tags each GraphQL request with a unique ID in the Next.js Data Cache
- * - It saves the mapping "Query ID <-> Cache Tags" on a Turso database
+ * - It saves the mapping "Query ID <-> Cache Tags" in a Vercel KV store (serverless redis)
  *
- * So, we just need to query the DB to find the query IDs related to the
+ * So, we just need to query the KV to find the query IDs related to the
  * received tags, and use `revalidateTag()` to invalidate the relevant requests.
  *
  * Read more: https://www.datocms.com/docs/content-delivery-api/cache-tags#step-3-implement-the-invalidate-cache-tag-webhook
@@ -17,7 +17,7 @@
 import { NextResponse } from 'next/server';
 
 import type { CacheTag } from '@/lib/cache-tags';
-import { deleteQueries, queriesReferencingCacheTags } from '@/lib/database';
+import {deleteCacheTags, queriesReferencingCacheTags} from '@/lib/database';
 import { revalidateTag } from 'next/cache';
 
 export const dynamic = 'force-dynamic'; // defaults to auto
@@ -52,7 +52,7 @@ export async function POST(request: Request) {
 
   const queryIds = await queriesReferencingCacheTags(cacheTags);
 
-  await deleteQueries(queryIds);
+  await deleteCacheTags(cacheTags);
 
   for (const queryId of queryIds) {
     /**
