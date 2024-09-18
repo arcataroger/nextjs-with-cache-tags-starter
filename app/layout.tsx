@@ -17,7 +17,7 @@ const LAST_POST_QUERY = graphql(`
 export const dynamic = 'force-static';
 
 export const metadata: Metadata = {
-  title: 'DatoCMS starter: a blog example',
+  title: 'DatoCMS x Vercel KV cache tags demo',
   description: 'Featuring DatoCMS React components, cache tags and more',
 };
 
