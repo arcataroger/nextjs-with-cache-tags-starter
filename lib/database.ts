@@ -23,7 +23,7 @@ export async function storeQueryCacheTags(
         try {
             await kv.sadd(cacheTag, queryId)
         } catch (e) {
-            console.error(`Error storing query ID for cache tags ${JSON.stringify(cacheTags)}: ${e}`)
+            console.error(`Error storing query ID for cache tags ${cacheTags.join()}: ${e}`)
         }
     }
 
@@ -39,9 +39,11 @@ export async function queriesReferencingCacheTags(
         // With normal redis or or Upstash, you can query several keys at once
         // But in the Vercel SDK, it seems the method expects one key as the first param and then the rest after that
         const [firstTag, ...remainingTags] = cacheTags;
-        return await kv.sunion(firstTag, ...remainingTags) as string[]
+        const queryIds = await kv.sunion(firstTag, ...remainingTags) as string[]
+        console.info(`Query IDs for cache tags ${cacheTags.join()}: ${queryIds.length ? queryIds.join() : 'None found'}`)
+        return queryIds
     } catch (e) {
-        console.error(`Error retrieving cache tags ${JSON.stringify(cacheTags)}: ${e}`)
+        console.error(`Error retrieving cache tags ${cacheTags.join()}: ${e}`)
         return []
     }
 }
@@ -49,20 +51,24 @@ export async function queriesReferencingCacheTags(
 /*
  * Removes one or more cache tags
  */
-export async function deleteCacheTags(cacheTags: CacheTag[]) {
+export async function deleteCacheTags(cacheTags: CacheTag[]): Promise<number|null> {
     try {
-      await kv.del(...cacheTags);
+      const numberOfDeletedKeys = await kv.del(...cacheTags);
+      return numberOfDeletedKeys
     } catch (e) {
         console.error(`Error deleting cache tags ${JSON.stringify(cacheTags)}: ${e}`)
+        return null
     }
 }
 
 /*
  * Wipes out all data contained in the KV store.
  */
-export async function truncateAssociationsTable() {
+export async function truncateAssociationsTable():Promise<"OK"|null> {
     try {
-        await kv.flushdb({async: true}) // TODO Does it matter if we use JS async vs a sync flushdb?
+        const dbFlushResult = await kv.flushdb({async: true}) // TODO Does it matter if we use JS async vs a sync flushdb?
+        return dbFlushResult
     } catch (e) {
         console.error(`Error flushing the KV store`)
+        return null
     }}

@@ -49,10 +49,10 @@ export async function POST(request: Request) {
   const data = (await request.json()) as CdaCacheTagsInvalidateWebhook;
 
   const cacheTags = data.entity.attributes.tags;
+  console.info(`Cache tags to invalidate: ${cacheTags.length ? cacheTags.join() : 'None'}`);
 
   const queryIds = await queriesReferencingCacheTags(cacheTags);
-
-  await deleteCacheTags(cacheTags);
+  console.info(`Query IDs I got from the KV: ${queryIds.length ? queryIds.join() : 'None'}`);
 
   for (const queryId of queryIds) {
     /**
@@ -64,7 +64,19 @@ export async function POST(request: Request) {
      * The next time someone requests any of these outdated entries, the cache
      * will respond with a MISS.
      */
+    console.info(`Asking Next to revalidate query ID ${queryId}...`)
     revalidateTag(queryId);
   }
+
+
+  const numOfDeletedCacheTags = await deleteCacheTags(cacheTags);
+  if (numOfDeletedCacheTags === null) {
+    console.error(`There was a KV error deleting cache tags ${cacheTags.join()}. Check for other errors above.`);
+  } else if (numOfDeletedCacheTags === 0) {
+    console.warn(`Warning: You asked me to delete ${cacheTags.length} cache tags, but the KV ended up deleting nothing`)
+  } else {
+    console.info(`Successfully deleted ${numOfDeletedCacheTags} cache tags from the KV.`);
+  }
+
   return NextResponse.json({ cacheTags, queryIds });
 }
