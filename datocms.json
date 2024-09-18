@@ -19,12 +19,12 @@
   "preDeploy": {
     "type": "modalWithPostMessage",
     "intro": {
-      "title": "This starter needs a Turso database!",
-      "description": "Don't worry: we'll create one for you! 😊 All you need to do is log in with your Turso credentials, or register if it's your first time.",
-      "button": "Ok, take me to Turso website"
+      "title": "This starter needs a Vercel KV store",
+      "description": "Please follow Vercel's instructions inside your own project.",
+      "button": "Create a Vercel KV store"
     },
     "modal": {
-      "url": "https://turso-db-creator.vercel.app/",
+      "url": "https://vercel.com/docs/storage/vercel-kv/quickstart#create-a-kv-database",
       "width": 850,
       "height": 600
     }

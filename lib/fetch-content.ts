@@ -18,7 +18,7 @@ import { storeQueryCacheTags } from './database';
  * When a "Cache Tags Invalidation" webhook is received from DatoCMS, we need to
  * identify and invalidate the relevant cached queries. To achieve this, we
  * store the mapping between the unique identifier and the DatoCMS Cache Tags in
- * a persistent Turso database for future reference.
+ * a persistent Vercel KV for future reference.
  *
  * 💡 Note: This isn't the final function we're exporting for use in the
  * project! There's one more thing to consider for maximum code optimization.
