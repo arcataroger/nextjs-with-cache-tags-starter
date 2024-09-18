@@ -43,7 +43,7 @@ export default async function RootLayout({
           <nav>
             <ul>
               <li>
-                <strong>DatoCMS starter: a blog example</strong>
+                <strong>DatoCMS cache tags demo: Turso</strong>
               </li>
             </ul>
             <ul>
