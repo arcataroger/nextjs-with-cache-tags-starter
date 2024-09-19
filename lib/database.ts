@@ -60,9 +60,9 @@ export async function storeQueryCacheTags(
             args: cacheTags.flatMap((cacheTag) => [queryId, cacheTag]),
         });
 
-        console.info(`Successfully stored ${cacheTags.length} cache tags for query ID ${queryId}. ${result.rowsAffected} rows affected. Cache tags: ${cacheTags.join()}`);
+        console.info(`Successfully stored ${cacheTags.length} cache tags for query ID ${queryId}. ${result.rowsAffected} rows affected. Cache tags: ${cacheTags.join(',   ')}`);
     } catch (e) {
-        console.error(`Error saving cache tags for query ${queryId}: ${cacheTags.join()}: ${e}`);
+        console.error(`Error saving cache tags for query ${queryId}: ${cacheTags.join(',   ')}: ${e}`);
     }
 }
 
@@ -83,14 +83,14 @@ export async function queriesReferencingCacheTags(
         });
         const queryIds = rows.map((row) => row.query_id as string);
         if(queryIds.length) {
-            console.info(`${cacheTags.length} cache tags (${cacheTags.join()}) returned ${queryIds.length} query IDs: ${queryIds.join()}`);
+            console.info(`${cacheTags.length} cache tags (${cacheTags.join(',   ')}) returned ${queryIds.length} query IDs: ${queryIds.join(',   ')}`);
         } else {
-            console.info(`No query IDs found for the ${cacheTags.length} cache tags: ${cacheTags.join()}`);
+            console.info(`No query IDs found for the ${cacheTags.length} cache tags: ${cacheTags.join(',   ')}`);
         }
         return queryIds
 
     } catch (e) {
-        console.error(`Error fetching queries for cache tags ${cacheTags.join()}: ${e}`);
+        console.error(`Error fetching queries for cache tags ${cacheTags.join(',   ')}: ${e}`);
         return []
     }
 
@@ -108,9 +108,9 @@ export async function deleteQueries(queryIds: string[]) {
     `,
             args: queryIds,
         });
-        console.info(`Successfully deleted ${queryIds.length} query IDs in ${result.rowsAffected} rows: ${queryIds.join()}`)
+        console.info(`Successfully deleted ${queryIds.length} query IDs in ${result.rowsAffected} rows: ${queryIds.join(',   ')}`)
     } catch (e) {
-        console.error(`Error deleting ${queryIds.length} query IDs (${queryIds.join()}): ${e}`);
+        console.error(`Error deleting ${queryIds.length} query IDs (${queryIds.join(',   ')}): ${e}`);
     }
 }
 
